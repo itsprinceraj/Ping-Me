@@ -1,10 +1,18 @@
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import { Button } from "@/components/ui/button";
+import { Auth } from "./pages/Auth";
+import { Chat } from "./pages/Chat";
+import { Profile } from "./pages/Profile";
 
 function App() {
   return (
     <>
-      <Button>Add me</Button>
+      <Routes>
+        {/*  create all routes  */}
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/profile" element={<Profile />} />
+      </Routes>
     </>
   );
 }
