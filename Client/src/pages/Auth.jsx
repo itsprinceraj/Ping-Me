@@ -7,17 +7,94 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
+import { toast } from "sonner";
+import { apiConnector } from "@/services/apiConnector";
+import { authApiEndPoints } from "@/services/apiEndPoints";
+
+const { SIGNUP_API, LOGIN_API } = authApiEndPoints;
 
 export const Auth = () => {
   //  cteate state variable
   const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
+  const [password, setPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const [passVisible, setPassVisible] = useState(false);
+  const [confirmPassVisible, setConfirmPassVisible] = useState(false);
 
   //    handle form submit events
-  const handleLogin = async () => {};
+  const validateLogin = () => {
+    if (!email.length) {
+      toast.error("Please enter email!");
+      return false;
+    }
+    if (!password.length) {
+      toast.error("Please enter Password");
+      return false;
+    }
 
-  const handleSignup = async () => {};
+    return true;
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      //  if validateLogin is true , then map api call
+      if (validateLogin()) {
+        const response = await apiConnector(
+          "POST",
+          LOGIN_API,
+          { email, password },
+          { withCredentials: true } // cookie will be send to the browser
+        );
+
+        //  log the response
+        console.log(response);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const validateSignUp = () => {
+    if (!email.length) {
+      toast.error("Please enter email!");
+      return false;
+    }
+    if (!password.length) {
+      toast.error("Please enter Password");
+      return false;
+    }
+
+    if (password !== confirmPass) {
+      toast.error("Password and ConfirmPassword must be same!");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    try {
+      //  if validate Signup is true ,make an api call
+      if (validateSignUp()) {
+        const response = await apiConnector(
+          "POST",
+          SIGNUP_API,
+          {
+            email,
+            password,
+          },
+          { withCredentials: true }
+        );
+
+        //  log the response
+        console.log(response);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   return (
     <div className="h-[100vh]  w-[100vw] flex justify-center items-center ">
@@ -76,19 +153,25 @@ export const Auth = () => {
                   <Input
                     placeholder="Email"
                     type="email"
-                    required
                     name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <Input
-                    placeholder="Password"
-                    required
-                    name="password"
-                    type={"password"}
-                    value={pass}
-                    onChange={(e) => setPass(e.target.value)}
-                  />
+                  <div className="flex justify-center items-center relative">
+                    <Input
+                      placeholder="Password"
+                      name="password"
+                      type={passVisible ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPass(e.target.value)}
+                    />
+                    <div
+                      className="absolute right-4 cursor-pointer"
+                      onClick={() => setPassVisible(!passVisible)}
+                    >
+                      {passVisible ? <IoEyeOffOutline /> : <IoEyeOutline />}
+                    </div>
+                  </div>
 
                   {/*  add button */}
                   <Button className="rounded-full p-4 w-full">Login</Button>
@@ -104,27 +187,47 @@ export const Auth = () => {
                   <Input
                     placeholder="Email"
                     type="email"
-                    required
                     name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
-                  <Input
-                    placeholder="Password"
-                    required
-                    name="password"
-                    type={"password"}
-                    value={pass}
-                    onChange={(e) => setPass(e.target.value)}
-                  />
-                  <Input
-                    placeholder="Confirm Password"
-                    required
-                    name="confirmPass"
-                    type={"password"}
-                    value={confirmPass}
-                    onChange={(e) => setConfirmPass(e.target.value)}
-                  />
+                  <div className="flex justify-center items-center relative">
+                    <Input
+                      placeholder="Password"
+                      name="password"
+                      type={passVisible ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPass(e.target.value)}
+                    />
+                    <div
+                      className="absolute right-4 cursor-pointer"
+                      onClick={() => setPassVisible(!passVisible)}
+                    >
+                      {passVisible ? <IoEyeOffOutline /> : <IoEyeOutline />}
+                    </div>
+                  </div>
+
+                  {/*  confirm password field */}
+                  <div className="flex justify-center items-center relative">
+                    <Input
+                      placeholder="Confirm Password"
+                      name="confirmPass"
+                      type={confirmPassVisible ? "text" : "password"}
+                      value={confirmPass}
+                      onChange={(e) => setConfirmPass(e.target.value)}
+                    />
+
+                    <div
+                      className="absolute right-4 cursor-pointer"
+                      onClick={() => setConfirmPassVisible(!confirmPassVisible)}
+                    >
+                      {confirmPassVisible ? (
+                        <IoEyeOffOutline />
+                      ) : (
+                        <IoEyeOutline />
+                      )}
+                    </div>
+                  </div>
 
                   {/*  add button */}
                   <Button className="rounded-full p-4 w-full">SignUp</Button>
