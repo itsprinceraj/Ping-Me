@@ -45,7 +45,7 @@ export const Auth = () => {
           "POST",
           LOGIN_API,
           { email, password },
-          { withCredentials: true } // cookie will be send to the browser
+          { withCredentials: true } // if we don't do this , then we cannot recieve jwt token ,that we have sent while signup
         );
 
         //  log the response

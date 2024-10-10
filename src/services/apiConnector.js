@@ -22,9 +22,9 @@ export const apiConnector = async (
     const respons = await axiosCall({
       method,
       url,
-      data: data || undefined, // Only include data if it's not null
-      headers: headers || undefined,
-      params: params || undefined,
+      data: data || null, // Only include data if it's not null
+      headers: headers || null,
+      params: params || null,
     });
 
     return respons.data;

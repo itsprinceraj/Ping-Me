@@ -22,7 +22,7 @@ exports.signUp = async (req, res, next) => {
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
         message: "User Already exist",
       });
@@ -33,14 +33,14 @@ exports.signUp = async (req, res, next) => {
 
     //   send response
     res.status(200).json({
-      success: false,
+      success: true,
       user,
       message: "User registered successfull",
     });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({
-      success: true,
+      success: false,
       message: "Internal Server Error",
     });
   }

@@ -15,11 +15,14 @@ app.use(express.urlencoded({ extended: true }));
 //  add cors
 app.use(
   cors({
-    origin: ["http://localhost:5173/"],
+    origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 //  use Routes
 app.use("/api/v1/auth/", authRoute);
