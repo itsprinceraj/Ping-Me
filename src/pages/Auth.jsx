@@ -7,21 +7,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
-import { toast } from "sonner";
-import { apiConnector } from "@/services/apiConnector";
-import { authApiEndPoints } from "@/services/apiEndPoints";
+import { toast } from "react-hot-toast";
+import { loginApi, signupApi } from "@/services/operations/authApis";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
-const { SIGNUP_API, LOGIN_API } = authApiEndPoints;
 
 export const Auth = () => {
   //  cteate state variable
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
   const [email, setEmail] = useState("");
   const [password, setPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [passVisible, setPassVisible] = useState(false);
   const [confirmPassVisible, setConfirmPassVisible] = useState(false);
 
-  //    handle form submit events
+  //   validate login function;
   const validateLogin = () => {
     if (!email.length) {
       toast.error("Please enter email!");
@@ -35,26 +38,21 @@ export const Auth = () => {
     return true;
   };
 
+  //  handle login
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
       //  if validateLogin is true , then map api call
       if (validateLogin()) {
-        const response = await apiConnector(
-          "POST",
-          LOGIN_API,
-          { email, password },
-          { withCredentials: true } // if we don't do this , then we cannot recieve jwt token ,that we have sent while signup
-        );
-
-        //  log the response
-        console.log(response);
+        const response = await loginApi(email, password, navigate,dispatch);
+        // console.log(response);
       }
     } catch (error) {
       console.log(error.message);
     }
   };
+
+  //  validate sugnup function
 
   const validateSignUp = () => {
     if (!email.length) {
@@ -62,34 +60,29 @@ export const Auth = () => {
       return false;
     }
     if (!password.length) {
-      toast.error("Please enter Password");
+      toast.error("Please Enter a strong Password!");
       return false;
     }
 
     if (password !== confirmPass) {
-      toast.error("Password and ConfirmPassword must be same!");
+      toast.error("Password do not match");
       return false;
     }
-    return true;
+    if (password.length >= 8) {
+      return true;
+    }
+    toast.error("Password length must be > 7");
+    return false;
   };
 
+  //  handle signu\p
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
       //  if validate Signup is true ,make an api call
       if (validateSignUp()) {
-        const response = await apiConnector(
-          "POST",
-          SIGNUP_API,
-          {
-            email,
-            password,
-          },
-          { withCredentials: true }
-        );
-
-        //  log the response
-        console.log(response);
+        const response = await signupApi(email, password, navigate,dispatch);
+        // console.log(response);
       }
     } catch (error) {
       console.log(error.message);
@@ -127,7 +120,7 @@ export const Auth = () => {
 
           {/*  Login and signUp Tab Container */}
           <div className="flex items-center justify-center w-full">
-            <Tabs defaultValue="signup" className=" w-3/4 ">
+            <Tabs defaultValue="login" className=" w-3/4 ">
               <TabsList className=" bg-transparent rounded-none w-full  ">
                 <TabsTrigger
                   className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:border-b-purple-500 data-[state=active]:font-semibold p-3 transition-all duration-300  "

@@ -12,7 +12,7 @@ exports.signUp = async (req, res, next) => {
 
     //  validate
     if (!email || !password) {
-      return res.status(400).json({
+      return res.json({
         success: false,
         message: "Email and password is Required.",
       });
@@ -22,7 +22,7 @@ exports.signUp = async (req, res, next) => {
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
-      return res.status(401).json({
+      return res.json({
         success: false,
         message: "User Already exist",
       });
@@ -31,11 +31,31 @@ exports.signUp = async (req, res, next) => {
     //  create entry in DB
     const user = await User.create({ email, password });
 
-    //   send response
-    res.status(200).json({
+    const payload = {
+      email: email,
+    };
+
+    const maxAge = 3 * 24 * 60 * 60 * 1000;
+
+    //  create a jwt token
+    const token = jwt.sign(payload, JWT_SEC, {
+      expiresIn: maxAge,
+    });
+
+    // create options for cookie
+    const options = {
+      expiresIn: new Date(Date.now() + maxAge),
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    //  send cookie in response
+    res.cookie("token", token, options).status(200).json({
       success: true,
       user,
-      message: "User registered successfull",
+      token,
+      message: "User Registered successfully",
     });
   } catch (error) {
     console.log(error.message);
@@ -64,7 +84,7 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email: email });
 
     if (!user) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "User Data Not Found",
       });
@@ -74,7 +94,7 @@ exports.login = async (req, res, next) => {
     const passwordMatched = await compare(password, user.password);
 
     if (!passwordMatched) {
-      return res.status(401).json({
+      return res.json({
         success: false,
         message: "Passwor is Incorrect",
       });
@@ -111,6 +131,7 @@ exports.login = async (req, res, next) => {
       .json({
         success: true,
         user,
+        token,
         data: {
           firstName: user.firstName,
           lastName: user.lastName,

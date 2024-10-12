@@ -2,12 +2,20 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import { Toaster } from "sonner";
+import { Toaster } from "react-hot-toast";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import { rootReducer } from "./redux/reducer/index.js";
+
+const store = configureStore({
+  reducer: rootReducer,
+});
 
 createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <Toaster closeButton duration={1500} theme="light" position="bottom-center" />
-    <App />
-  </BrowserRouter>
+  <Provider store={store}>
+    <BrowserRouter>
+      <App />
+      <Toaster />
+    </BrowserRouter>
+  </Provider>
 );
