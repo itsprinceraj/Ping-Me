@@ -1,18 +1,19 @@
 const { compare } = require("bcrypt");
 const User = require("../model/Users");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 const JWT_SEC = process.env.JWT_KEY;
 
 //  signup controller
-exports.signUp = async (req, res, next) => {
+exports.signUp = async (req, res) => {
   try {
     //  get data from reqbody
     const { email, password } = req.body;
 
     //  validate
     if (!email || !password) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "Email and password is Required.",
       });
@@ -22,17 +23,21 @@ exports.signUp = async (req, res, next) => {
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
-      return res.json({
+      return res.status(409).json({
         success: false,
         message: "User Already exist",
       });
     }
 
+    //  encrypt password and save it into the database;
+    const hashPass = await bcrypt.hash(password, 10);
+
     //  create entry in DB
-    const user = await User.create({ email, password });
+    const user = await User.create({ email, password: hashPass });
 
     const payload = {
-      email: email,
+      id: user._id,
+      email: user.email,
     };
 
     const maxAge = 3 * 24 * 60 * 60 * 1000;
@@ -46,7 +51,7 @@ exports.signUp = async (req, res, next) => {
     const options = {
       expiresIn: new Date(Date.now() + maxAge),
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "None",
     };
 
@@ -58,7 +63,7 @@ exports.signUp = async (req, res, next) => {
       message: "User Registered successfully",
     });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -74,7 +79,7 @@ exports.login = async (req, res, next) => {
 
     // validate data
     if (!email || !password) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
         message: "Email and password is Required.",
       });
@@ -82,21 +87,25 @@ exports.login = async (req, res, next) => {
 
     //  check if user exist or not , if not then tell user to register first
     const user = await User.findOne({ email: email });
+    console.log(user);
 
     if (!user) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "User Data Not Found",
       });
     }
 
     //  match the password
-    const passwordMatched = await compare(password, user.password);
+    const passwordMatched = await bcrypt.compare(password, user.password);
+    console.log("matched password", passwordMatched);
+    console.log(password);
+    console.log(user.password);
 
     if (!passwordMatched) {
-      return res.json({
+      return res.status(400).json({
         success: false,
-        message: "Passwor is Incorrect",
+        message: "Incorrect Password",
       });
     }
 
@@ -106,7 +115,7 @@ exports.login = async (req, res, next) => {
     //  if user exist , then create token and send cookie
     const payload = {
       email: user.email,
-      id: user.id,
+      id: user._id,
     };
 
     const maxAge = 3 * 24 * 60 * 60 * 1000;
@@ -120,9 +129,11 @@ exports.login = async (req, res, next) => {
     const options = {
       expiresIn: new Date(Date.now() + maxAge),
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "None",
     };
+
+    console.log("ho gaya login");
 
     //  send cookie in response
     res
@@ -141,10 +152,16 @@ exports.login = async (req, res, next) => {
         message: "User Logged in successfully",
       });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
   }
+};
+
+//  get User controller
+exports.getUserData = async (req, res, next) => {
+  const user = req.user;
+  console.log(user);
 };
